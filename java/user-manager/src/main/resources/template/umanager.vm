@@ -1,0 +1,12 @@
+#disable_html_escaping
+<html>
+	<head>
+		<meta name="decorator" content="space.admin"/>
+		<meta name="spaceid" content="$spaceId"/>
+		
+		<content tag="space.admin.tools.selected">user.manager.key</content>
+	</head>
+<body>
+	<div class="pagecontent"> TEST </div>
+ </body>
+</html>
