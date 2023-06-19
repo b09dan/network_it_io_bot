@@ -1,0 +1,21 @@
+<atlassian-plugin key="${atlassian.plugin.key}" name="${project.name}" plugins-version="2">
+    <plugin-info>
+        <description>${project.description}</description>
+        <version>${project.version}</version>
+        <vendor name="${project.organization.name}" url="${project.organization.url}" />
+        <param name="plugin-icon">images/pluginIcon.png</param>
+        <param name="plugin-logo">images/pluginLogo.png</param>
+    </plugin-info>
+
+    <!-- add our i18n resource -->
+    <resource type="i18n" name="i18n" location="user-manager"/>
+    <web-item key="user.manager.key" name="user Manager" section="system.space.tools/addons" weight="100">
+    	<label key="user.manager.label"> User Manager </label>
+    	<link linkid="um-button-link">/plugins/servlet/cumanager?key=$helper.spaceKey</link>
+    </web-item>
+    
+    <servlet key="user.manager.servlet" name="User Manager Servlet" class="com.ds.usermanager.impl.ConflUserManager">
+    	<url-pattern>/cumanager</url-pattern>
+    </servlet>
+    
+</atlassian-plugin>
