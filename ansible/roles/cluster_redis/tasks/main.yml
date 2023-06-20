@@ -1,0 +1,30 @@
+- name: configure redis
+  template:
+    src: redis.conf.j2 
+    dest: /etc/redis/redis.conf
+    owner: redis
+    group: redis
+    mode: '0640'
+  notify: restart redis
+
+- name: configure sentinel
+  template:
+    src: redis-sentinel.conf.j2
+    dest: /etc/redis/redis-sentinel.conf
+    owner: redis
+    group: redis
+    mode: '0640'
+  notify: restart sentinel
+
+- name: configure additional sentinel
+  vars:
+    sentinel_port: 26380
+  template:
+    src: redis-sentinel.conf.j2
+    dest: /etc/redis/redis-sentinel2.conf
+    owner: redis
+    group: redis
+    mode: '0640'
+  when: add_more_sentinel == "yes"
+  notify: restart sentinel2
+

@@ -1,0 +1,11 @@
+rmq_vhosts:
+  - appa
+  - appb
+  - appc
+
+rmq_users:
+  - appa
+  - appb
+  - appc
+
+watermark: 0.6

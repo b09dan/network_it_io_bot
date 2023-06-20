@@ -1,0 +1,10 @@
+- name: change ssh port
+  lineinfile:
+    path: /etc/ssh/ssh_config
+    regexp: 'Port '
+    line: Port {{ sshport }}
+
+- name: restart sshd
+  service:
+    name: sshd
+    state: restarted

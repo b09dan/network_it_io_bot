@@ -1,0 +1,6 @@
+- hosts: all
+  tasks:
+    - name: redis cluster
+      include_role:
+        name: cluster_redis
+
