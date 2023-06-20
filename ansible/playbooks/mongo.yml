@@ -1,0 +1,6 @@
+- hosts: all
+  tasks:
+    - name: install mongo
+      include_role:
+        name: mongo_install
+

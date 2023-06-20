@@ -1,0 +1,6 @@
+- hosts: all
+  tasks:
+    - name: change port
+      include_role:
+        name: sshport
+      when: use_custom_ssh_port

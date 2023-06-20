@@ -1,0 +1,4 @@
+- name: create user admin
+  user:
+   name: admin
+   password: "{{ 'admin_password' | password_hash('sha512')  }}"

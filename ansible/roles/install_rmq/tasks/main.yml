@@ -1,0 +1,10 @@
+- name: add rabbitmq repository key
+  apt_key: >-
+    url=http://www.rabbitmq.com/rabbitmq-signing-key-public.asc
+    state=present
+
+- name: add rabbitmq repository
+  copy: src=rabbitmq.list dest=/etc/apt/sources.list.d/ backup=yes
+
+- name: install rabbitmq server
+  apt: name=rabbitmq-server

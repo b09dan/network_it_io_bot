@@ -1,0 +1,10 @@
+- name: list all vhosts
+  command: rabbitmqctl list_vhosts
+  register: vlist
+
+
+- name: create all vhost
+  shell: rabbitmqctl add_vhost "{{item}}"
+  when:  vlist.stdout is not search(item)
+  with_items: 
+    - "{{ rmq_vhosts }}"

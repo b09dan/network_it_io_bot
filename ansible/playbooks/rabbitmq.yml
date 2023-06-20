@@ -1,0 +1,15 @@
+- hosts: all
+  tasks:
+    - name: install rmq
+      include_role:
+        name: install_rmq
+    - name: create vhosts
+      include_role:
+        name: vhosts_rmq
+    - name: create users
+      include_role:
+        name: users_rmq
+    - name: change watermark
+      include_role:
+        name: watermark_rmq
+
