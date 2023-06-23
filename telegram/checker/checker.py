@@ -1,11 +1,12 @@
 import requests
 
+#load key-value config, skip # as comments
 def load_config(file_path):
     config = {}
     with open(file_path, 'r') as file:
         for line in file:
             line = line.strip()
-            if line and not line.startswith('#'):  # Пропускаем пустые строки и комментарии
+            if line and not line.startswith('#'):  
                 key, value = line.split('=')
                 config[key.strip()] = value.strip()
     return config
@@ -31,11 +32,27 @@ def get_updates(api_url, offset=None):
     response = requests.get(url, params)
     return response.json()
 
+#save-load bot's database
+def save_data_to_file(data, file_path):
+    with open(file_path, 'w') as file:
+        json.dump(data, file)
+
+def load_data_from_file(file_path):
+    try:
+        with open(file_path, 'r') as file:
+            data = json.load(file)
+            return data
+    except FileNotFoundError:
+        return {}
+
 def main():
-    file_path = 'config_checker.cfg'
-    bot_token =  load_config(file_path)['bot_token']
+    config_file = 'config_checker.cfg'
+    config_values = load_config(config_file)
+    bot_token =  config_values['bot_token']
     api_url = f'https://api.telegram.org/bot{bot_token}'
     offset = None
+    user_data = load_data_from_file(config_values['database_file'])
+
     while True:
         updates = get_updates(api_url, offset)
         if 'result' in updates:
