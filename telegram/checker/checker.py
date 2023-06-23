@@ -1,4 +1,5 @@
 import requests
+from rules_class import Rules
 
 #load key-value config, skip # as comments
 def load_config(file_path):
@@ -11,6 +12,30 @@ def load_config(file_path):
                 config[key.strip()] = value.strip()
     return config
 
+#save-load bot's database
+def save_data_to_file(data, file_path):
+    with open(file_path, 'w') as file:
+        json.dump(data, file)
+
+def load_data_from_file(file_path):
+    try:
+        with open(file_path, 'r') as file:
+            data = json.load(file)
+            return data
+    except FileNotFoundError:
+        return {}
+
+#work with user
+def user_whitelist_check():
+#do check against whitelist and active list
+    return True
+
+#work with message: make spam decision
+def message_check():
+#check message against rules
+    return False
+
+#work with update
 def send_message(api_url, chat_id, text, reply_to_message_id=None):
     url = f'{api_url}/sendMessage'
     params = {'chat_id': chat_id, 'text': text, 'reply_to_message_id': reply_to_message_id}
@@ -32,18 +57,7 @@ def get_updates(api_url, offset=None):
     response = requests.get(url, params)
     return response.json()
 
-#save-load bot's database
-def save_data_to_file(data, file_path):
-    with open(file_path, 'w') as file:
-        json.dump(data, file)
 
-def load_data_from_file(file_path):
-    try:
-        with open(file_path, 'r') as file:
-            data = json.load(file)
-            return data
-    except FileNotFoundError:
-        return {}
 
 def main():
     config_file = 'config_checker.cfg'
@@ -53,12 +67,17 @@ def main():
     offset = None
     user_data = load_data_from_file(config_values['database_file'])
 
-    while True:
+    while False:
         updates = get_updates(api_url, offset)
         if 'result' in updates:
             for update in updates['result']:
                 process_update(api_url, update)
                 offset = update['update_id'] + 1
+
+        #save pereodically user data
+        if offset % 10 == 0:
+            save_data_to_file(user_data, config_values['database_file'])
+            
 
 if __name__ == '__main__':
     main()
