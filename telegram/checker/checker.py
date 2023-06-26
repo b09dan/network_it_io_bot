@@ -112,12 +112,6 @@ def main():
     config_file = 'config_checker.cfg'
 
     config_values = load_config(config_file)
-
-    bot_token =  config_values['bot_token']
-    api_url = f'https://api.telegram.org/bot{bot_token}'
-    database_name = config_values['database_name']
-    table_prefix_msg = config_values['table_prefix_msg']
-    table_prefix_user = config_values['table_prefix_user']
     
     
     #create db
