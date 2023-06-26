@@ -1,3 +1,5 @@
 config_checker.cfg
 __pycache__/
 *.txt
+*.db
+*.swp

@@ -1,7 +1,7 @@
 import requests
 import json
+import sqlite3
 from rules_class import Rules
-from user_class import User
 
 #load key-value config, skip # as comments
 def load_config(file_path):
@@ -30,6 +30,13 @@ def load_data_from_file(file_path):
         return {}
 
 #work with user
+def user_add(userid, message_hash, user_data):
+    if userid not in user_data:
+        user_data[userid] = []
+        user_data[userid].append(userid)
+        user_data[userid].append(message_hash) 
+    return True
+
 def user_whitelist_check():
 #do check against whitelist and active list
     return True
@@ -54,8 +61,9 @@ def process_update(api_url, update, user_data):
             message_text = update['message']['text']
             message_id = update['message']['message_id']
             userid = update['message']['from']['id']
-            if userid not in user_data:
-                user_data[userid] = userid            
+
+            user_add(userid, hash(message_text), user_data)
+
             send_message(api_url, chat_id, f'You said: {message_text}/nYour userid: {userid}', reply_to_message_id=message_id)
 
 def get_updates(api_url, offset=None):
@@ -64,15 +72,31 @@ def get_updates(api_url, offset=None):
     response = requests.get(url, params)
     return response.json()
 
+def connect_to_database():
+    connection = sqlite3.connect("mydatabase.db")
+    return connection
+
+def fetch_data_from_table(connection):
+    cursor = connection.cursor()
+#cursor.execute('''CREATE TABLE IF NOT EXISTS messages
+#                  (id INTEGER PRIMARY KEY, chat_id INTEGER, message_id INTEGER, deleted INTEGER)''')
+
+    cursor.execute("SELECT * FROM mytable")
+    data = cursor.fetchall()
+    return data
 
 
 def main():
+    connection = None
     config_file = 'config_checker.cfg'
     config_values = load_config(config_file)
     bot_token =  config_values['bot_token']
     api_url = f'https://api.telegram.org/bot{bot_token}'
     offset = None
     user_data = load_data_from_file(config_values['database_file'])
+
+    connection = connect_to_database()
+    result = fetch_data_from_table(connection)
 
     while True:
         updates = get_updates(api_url, offset)
@@ -82,9 +106,11 @@ def main():
                 offset = update['update_id'] + 1
 
         #save pereodically user data
-        if offset and offset % 10 == 0:
+        if offset and offset % 2 == 0:
             save_data_to_file(user_data, config_values['database_file'])
-            
+
+    if connection:
+        connection.close()            
 
 if __name__ == '__main__':
     main()
