@@ -57,7 +57,7 @@ def save_user(config_values, message_text, user_id, message_id, chat_id):
 
     return True
 
-#work with update
+#work with update TODO:send message only to chat_reply_restrict chat
 def send_message(config_values, chat_id, text, reply_to_message_id=None):
     bot_token =  config_values['bot_token']
     api_url = f'https://api.telegram.org/bot{bot_token}'
@@ -66,6 +66,7 @@ def send_message(config_values, chat_id, text, reply_to_message_id=None):
     response = requests.post(url, params)
     return response.json()
 
+#TODO: read only chat_whitelist (development mode)
 def process_update(config_values, update):
     print(update)
     bot_token =  config_values['bot_token']
@@ -78,9 +79,10 @@ def process_update(config_values, update):
             message_id = update['message']['message_id']
             user_id = update['message']['from']['id']
 
-           #### change here user_add(config_values, userid, hash(message_text))
             save_message(config_values, message_text, user_id, message_id, chat_id)
             save_user(config_values, message_text, user_id, message_id, chat_id)
+            
+            #TODO: do not send message here, it's only for tests
             send_message(config_values, chat_id, f'You said: {message_text}\nYour userid: {user_id}', reply_to_message_id=message_id)
 
 def get_updates(config_values, offset=None):
@@ -97,14 +99,6 @@ def connect_to_database(database_name):
     connection = sqlite3.connect(database_name)
     return connection
 
-def fetch_data_from_table(config_values, connection):
-    cursor = connection.cursor()
-
-    cursor.execute("SELECT * FROM mytable")
-    data = cursor.fetchall()
-    return data
-
-
 def main():
     #init 
     offset = None
@@ -114,7 +108,7 @@ def main():
     config_values = load_config(config_file)
     
     
-    #create db
+    #create db and db connection
     config_values['connection']=connect_to_database(config_values['database_name'])
 
 
