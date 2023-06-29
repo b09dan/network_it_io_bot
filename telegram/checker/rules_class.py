@@ -24,5 +24,14 @@ class Rules:
                 return True #may be we need only one word, may be not
         return False
    
+    @staticmethod
+    def user_whitelist_check():
+    #do check against whitelist and active list
+        return True
 
+    #work with message: make spam decision
+    @staticmethod
+    def message_check():
+    #check message against rules
+        return False
 
