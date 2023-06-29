@@ -3,6 +3,7 @@ import json
 import logging
 from rules_class import Rules
 from db_functions_class import DbFunctions
+from training_class import Training
 
 #load key-value config, skip # as comments
 def load_config(file_path):
@@ -74,15 +75,18 @@ def main():
     #create db and db connection
     config_values['connection']=DbFunctions.connect_to_database(config_values['database_name'])
 
-
-    #get updates and proccess them
-    while True:
-        updates = get_updates(config_values, offset)
-        if 'result' in updates:
-            for update in updates['result']:
-                process_update(config_values, update)
-                offset = update['update_id'] + 1
-        
+    if config_values['mode'] == "general":
+        #get updates and proccess them
+        while True:
+            updates = get_updates(config_values, offset)
+            if 'result' in updates:
+                for update in updates['result']:
+                    process_update(config_values, update)
+                    offset = update['update_id'] + 1
+    elif config_values['mode'] == "training":
+            Training.train_good(config_values)
+            print("----------------")
+            Training.train_bad(config_values)
 
 if __name__ == '__main__':
     main()

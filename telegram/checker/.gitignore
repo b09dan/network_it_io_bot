@@ -1,5 +1,6 @@
 config_checker.cfg
 __pycache__/
+tmp/
 *.txt
 *.db
 *.swp
