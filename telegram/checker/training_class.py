@@ -29,7 +29,9 @@ class Training:
         while row is not None:
             user_id = row[0]
             message_text = row[1]
+            print(message_text)
             Rules.message_check(config_values, message_text, user_id, 0, 0)
+            print("-----------------------------")
             row = result.fetchone()
 
         result.close()
