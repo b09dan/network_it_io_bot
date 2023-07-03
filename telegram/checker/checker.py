@@ -42,10 +42,14 @@ def process_update(config_values, update):
             message_id = update['message']['message_id']
             user_id = update['message']['from']['id']
 
-            DbFunctions.save_message(config_values, message_text, user_id, message_id, chat_id)
+            
             DbFunctions.save_user(config_values, message_text, user_id, message_id, chat_id)
-
-            logging.debug("Update processed. Chat_id=% Message_id=% User_id=%", chat_id, message_id, user_id)
+            
+            Rules.message_check(config_values, message_text, user_id, 0, 0)    
+ 
+            DbFunctions.save_message(config_values, message_text, user_id, message_id, chat_id)       
+            
+            logging.debug("Update processed. Chat_id=%s Message_id=%s User_id=%s", chat_id, message_id, user_id)
             #TODO: do not send message here, it's only for tests
             #send_message(config_values, chat_id, f'You said: {message_text}\nYour userid: {user_id}', reply_to_message_id=message_id)
 
