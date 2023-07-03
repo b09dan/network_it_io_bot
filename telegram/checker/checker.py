@@ -35,6 +35,7 @@ def process_update(config_values, update):
 
     if 'message' in update and 'chat' in update['message'] and 'id' in update['message']['chat']:
         logging.info(update)
+        is_spam = 0
         chat_id = update['message']['chat']['id']
         #TODO: dont forget to think about the whitelist   and chat_id in config_values['chat_whitelist']
         if 'text' in update['message']:
@@ -42,12 +43,10 @@ def process_update(config_values, update):
             message_id = update['message']['message_id']
             user_id = update['message']['from']['id']
 
-            
+            is_spam = int(Rules.message_check(config_values, message_text, user_id, 0, 0))
+
             DbFunctions.save_user(config_values, message_text, user_id, message_id, chat_id)
-            
-            Rules.message_check(config_values, message_text, user_id, 0, 0)    
- 
-            DbFunctions.save_message(config_values, message_text, user_id, message_id, chat_id)       
+            DbFunctions.save_message(config_values, message_text, user_id, message_id, chat_id, is_spam)       
             
             logging.debug("Update processed. Chat_id=%s Message_id=%s User_id=%s", chat_id, message_id, user_id)
             #TODO: do not send message here, it's only for tests

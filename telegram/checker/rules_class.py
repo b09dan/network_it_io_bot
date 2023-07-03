@@ -13,48 +13,34 @@ class Rules:
     #work with message: make spam decision. False = not spam----------------------------
     @staticmethod
     def message_check(config_values, message_text, user_id, chat_id, reply_id):
-        print("Message check starting.")
+        print("---Message check starting.---")
+        is_mixed = False
 
         if DbFunctions.is_human(config_values, user_id):
-            print("This is human. Stop message check.")
+            print("---This is human (not spam). Stop message check.---")
             return False
 
         if DbFunctions.duplicate_messages(config_values, user_id, message_text):
-            print("This is duplicated message. Stop message check.")
+            print("---This is duplicated (spam) message. Stop message check.---")
             return True
         
         #spam points (needs to be adjusted)
         spam_probability = 0
-        
-        #check language mix
-        #these combintation of checks work perfect. if they al true - 100% spam
-        if Rules.languages_mix(message_text):
-            spam_probability += 1
-            #emotions - heavy function
-            if Rules.check_emotions(message_text):
-                print("too many emotions")
-            if Rules.count_newlines(message_text):
-                print("too many newlines")          
-
-
         #check regexp
         spam_probability += 10 *  Rules.regexp_check(message_text)
-        if spam_probability > 0:
-            #emotions - heavy function
-            if Rules.check_emotions(message_text):
-                print("too many emotions") 
-            if Rules.count_newlines(message_text):
-                print("too many newlines") 
-            if Rules.count_eclamation_marks(message_text):
-                print("too many eclamation marks") 
-
-        if spam_probability > 0:
-            print(spam_probability)
-            if spam_probability > 20:
-                #print(spam_probability)
-                print(message_text)
+        #check language mix 
+        is_mixed = Rules.languages_mix(message_text)
         
-        print("Message check done.")
+
+        if (is_mixed or spam_probability > 0) and \
+                (int(Rules.check_emotions(message_text)) + \
+                int(Rules.count_newlines(message_text)) + \
+                int(Rules.count_eclamation_marks(message_text))) > 1:
+
+            print("---Message check done: SPAM (advanced rules).---")
+            return True
+        
+        print("---Message check done.---")
         return False
 
 #
