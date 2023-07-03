@@ -38,15 +38,15 @@ class DbFunctions:
         connection.commit()
         
         #check user. TODO: rewrite sql (update) and think about the logic
-        query = f'SELECT * FROM "{table_prefix_user}_main" where  user_id = {user_id}'
+        query = f'SELECT user_id, messages_count, human, message_hash FROM "{table_prefix_user}_main" where  user_id = {user_id}'
         result = connection.execute(query)
         existing_user = result.fetchone()
         if existing_user:
-            user_id = existing_user['user_id']
-            messages_count = existing_user['messages_count'] + 1
-            human = existing_user['human']
+            user_id = existing_user[0]
+            messages_count = existing_user[1] + 1
+            human = existing_user[2]
             if messages_count < 20:
-                message_hash = existing_user['message_hash'] + "," + hash(message_text[:1000])
+                message_hash = existing_user[3] + "," + str(hash(message_text[:1000]))
             else:
                 human = 1
             
@@ -88,12 +88,12 @@ class DbFunctions:
         connection = config_values['connection']
         
         data = (user_id,)
-        query = f'SELECT * FROM "{table_prefix_user}_main" where  user_id = ?'
+        query = f'SELECT message_hash FROM "{table_prefix_user}_main" where  user_id = ?'
         result = connection.execute(query, data)
         existing_user = result.fetchone()
         if existing_user:
-            message_hash = existing_user['message_hash']
-            if hash(message_text[:1000]) in message_hash:
+            message_hash = existing_user[0]
+            if str(hash(message_text[:1000])) in message_hash:
                 return True
         return False
 

@@ -13,11 +13,14 @@ class Rules:
     #work with message: make spam decision. False = not spam----------------------------
     @staticmethod
     def message_check(config_values, message_text, user_id, chat_id, reply_id):
-        
+        print("Message check starting.")
+
         if DbFunctions.is_human(config_values, user_id):
+            print("This is human. Stop message check.")
             return False
 
         if DbFunctions.duplicate_messages(config_values, user_id, message_text):
+            print("This is duplicated message. Stop message check.")
             return True
         
         #spam points (needs to be adjusted)
@@ -33,20 +36,17 @@ class Rules:
             if Rules.count_newlines(message_text):
                 print("too many newlines")          
 
-        #greek letters
-        if Rules.is_greek_letters(message_text):
-            spam_probability += 2
-
 
         #check regexp
         spam_probability += 10 *  Rules.regexp_check(message_text)
-        if spam_probability > 20:
+        if spam_probability > 0:
             #emotions - heavy function
             if Rules.check_emotions(message_text):
                 print("too many emotions") 
             if Rules.count_newlines(message_text):
                 print("too many newlines") 
-
+            if Rules.count_eclamation_marks(message_text):
+                print("too many eclamation marks") 
 
         if spam_probability > 0:
             print(spam_probability)
@@ -54,7 +54,7 @@ class Rules:
                 #print(spam_probability)
                 print(message_text)
         
-
+        print("Message check done.")
         return False
 
 #
@@ -68,10 +68,11 @@ class Rules:
         cleaned_text = ''.join(c for c in message_text if c.isalnum() or c.isspace())
         word_count = len(cleaned_text.split())
 
-        blacklist_list = [ 'активн',  'ответствен', 'партнер', 'удалённо', 'работ', 'обуч',  'писат', 'личн', 'сообщен', 'крипт', 'предлаг',
-                        'залив']
-        for word in blacklist_list:
-            match_points += message_text.count(word)
+        blacklist_list = ['00$', 'активн',  'ответствен', 'партн', 'удалён', 'работ', 'обуч',  'писат', 'личн', 'сообщен', 'крипт', 'предлаг',
+                        'залив', 'профит', 'свобод', 'сотрудничеств', 'мотивац', 'депозит', 'трейдин']
+        if word_count > 5:
+            for word in blacklist_list:
+                match_points += message_text.count(word)
         
         return round(10*match_points/(word_count + 1))
 
@@ -93,15 +94,7 @@ class Rules:
                     return True #two mixed words enough for decision
         return False
    
-    #check agains greek alphabet
-    @staticmethod
-    def is_greek_letters(message_text):
-        greek_alphabet = re.compile(r'[α-ωΑ-Ω]')
-        greek_letters = re.findall(greek_alphabet, message_text)
-        count = len(greek_letters)
-        if count > 2: 
-            return True
-        return False
+
 
 
 #
@@ -110,6 +103,13 @@ class Rules:
     #too many newlines? use this only as additional check
     def count_newlines(message_text):
         count = message_text.count("\n")
+        if count > 4: 
+            return True
+        return False
+
+    #too many eclamation marks? use this only as additional check
+    def count_eclamation_marks(message_text):
+        count = message_text.count("!")
         if count > 4: 
             return True
         return False
@@ -150,7 +150,15 @@ class Rules:
         return len(emotions)
 
 
-
+    #check agains greek alphabet. for future use?
+    @staticmethod
+    def is_greek_letters(message_text):
+        greek_alphabet = re.compile(r'[α-ωΑ-Ω]')
+        greek_letters = re.findall(greek_alphabet, message_text)
+        count = len(greek_letters)
+        if count > 2: 
+            return True
+        return False
 
 
 
