@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
 import sqlite3
+import unicodedata
 from db_functions_class import DbFunctions
 
 # one class for all rules and checks
@@ -22,21 +23,23 @@ class Rules:
 
         if DbFunctions.duplicate_messages(config_values, user_id, message_text):
             print("---This is duplicated (spam) message. Stop message check.---")
-            return True
-        
+            return True       
+
         #spam points (needs to be adjusted)
         spam_probability = 0
         #check regexp
         spam_probability += 10 *  Rules.regexp_check(message_text)
+        print("Spam probability = " + str(spam_probability))
         #check language mix 
         is_mixed = Rules.languages_mix(message_text)
+
+        #additional checks
+        add_checks_sum = int(Rules.count_unicode_characters(message_text)) + \
+                         int(Rules.count_newlines(message_text)) + \
+                         int(Rules.count_eclamation_marks(message_text))
         
 
-        if (is_mixed or spam_probability > 0) and \
-                (int(Rules.check_emotions(message_text)) + \
-                int(Rules.count_newlines(message_text)) + \
-                int(Rules.count_eclamation_marks(message_text))) > 1:
-
+        if (is_mixed or spam_probability > 0) and add_checks_sum > 1 or add_checks_sum == 3:
             print("---Message check done: SPAM (advanced rules).---")
             return True
         
@@ -54,8 +57,8 @@ class Rules:
         cleaned_text = ''.join(c for c in message_text if c.isalnum() or c.isspace())
         word_count = len(cleaned_text.split())
 
-        blacklist_list = ['00$', 'активн',  'ответствен', 'партн', 'удалён', 'работ', 'обуч',  'писат', 'личн', 'сообщен', 'крипт', 'предлаг',
-                        'залив', 'профит', 'свобод', 'сотрудничеств', 'мотивац', 'депозит', 'трейдин']
+        blacklist_list = ['00$', '00 $', 'активн',  'ответствен', 'партн', 'удалён', 'работ', 'обуч',  'писат', 'личн', 'сообщен', 'крипт', 'предлаг',
+                        'залив', 'профит', 'свобод', 'сотрудничеств', 'мотивац', 'депозит', 'трейдин', 'пиши']
         if word_count > 5:
             for word in blacklist_list:
                 match_points += message_text.count(word)
@@ -74,9 +77,9 @@ class Rules:
         mixed_words_count = 0
         for word in cleaned_text.split(' '):
             if len(word) > 4 and russian_alphabet.match(word) is None and english_alphabet.match(word) is None:
-                #print(word + str(len(word)))
                 mixed_words_count += 1
                 if mixed_words_count > 1:
+                    print("Mixed languages.")
                     return True #two mixed words enough for decision
         return False
    
@@ -90,51 +93,34 @@ class Rules:
     def count_newlines(message_text):
         count = message_text.count("\n")
         if count > 4: 
+            print("Too many newlines.")
             return True
+
         return False
 
     #too many eclamation marks? use this only as additional check
     def count_eclamation_marks(message_text):
         count = message_text.count("!")
         if count > 4: 
+            print("Too many eclamation marks.")
             return True
         return False
-
     
-    #too many emotions? use this only as additional check or optimize it first
-    def check_emotions(message_text):
-        #make message shorter
-        message_short = message_text[:300]
-
-        emotion_ranges = [
-            (0x1F601, 0x1F64F),
-            (0x2702, 0x27B0),
-            (0x1F680, 0x1F6C0),
-            (0x24C2, 0x1F251),
-            (0x1F600, 0x1F636),
-            (0x1F681, 0x1F6C5)
-        ]
+    #count emotions (not exactly but close to needed)
+    def count_unicode_characters(message_text):
         count = 0
-        for start, end in emotion_ranges:
-            for codepoint in range(start, end + 1):
-                emotion = chr(codepoint)
-                if emotion in message_short:
-                    count += 1
-        if count > 2:
+        for char in message_text:
+            if unicodedata.category(char)[0] == 'C':
+                count += 1
+        if count > 3:
+            print("Unicode:" + str(count))
             return True
+            
         return False
-
 
 #
 #   functions to test or for analyse
 #
-    #not tested
-    def find_unicode_emotions(message_text):
-        pattern = r"[\U0001F000-\U0001F9FF]+" 
-
-        emotions = re.findall(pattern, message_text[:300])
-        return len(emotions)
-
 
     #check agains greek alphabet. for future use?
     @staticmethod

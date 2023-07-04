@@ -72,7 +72,7 @@ def main():
     config_values = load_config(config_file)
 
     #TODO: add setting log level
-    log_level = config_values['loglevel']
+    #log_level = config_values['loglevel']
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
     
     #create db and db connection
