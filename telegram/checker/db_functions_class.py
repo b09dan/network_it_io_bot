@@ -10,25 +10,31 @@ class DbFunctions:
     #save message to db
     @staticmethod
     def save_message(config_values, message_text, user_id, message_id, chat_id, is_spam):
-        table_prefix_msg = config_values['table_prefix_msg']
-        connection = config_values['connection']
+        #now we save only spam message text. TODO: may be another logic? 
+        if is_spam:
+            table_prefix_msg = config_values['table_prefix_msg']
+            connection = config_values['connection']
 
-        query = f'CREATE TABLE IF NOT EXISTS "{table_prefix_msg}{chat_id}" \
-                (message_id INTEGER PRIMARY KEY, user_id INTEGER, message_text TEXT, deleted INTEGER, is_spam INTEGER)'
-        connection.execute(query)
-        connection.commit()
-        
-        #we don't save message text
-        data = (message_id, user_id, "", 0, is_spam)
-        query = f'REPLACE INTO "{table_prefix_msg}{chat_id}" (message_id, user_id, message_text, deleted, is_spam) VALUES (?, ?, ?, ?, ?)'
-        connection.execute(query, data)
-        connection.commit()
+            query = f'CREATE TABLE IF NOT EXISTS "{table_prefix_msg}{chat_id}" \
+                    (message_id INTEGER PRIMARY KEY, user_id INTEGER, message_text TEXT, deleted INTEGER, is_spam INTEGER)'
+            connection.execute(query)
+            connection.commit()
+            
+
+            data = (message_id, user_id, "", 0, is_spam)
+            query = f'REPLACE INTO "{table_prefix_msg}{chat_id}" (message_id, user_id, message_text, deleted, is_spam) VALUES (?, ?, ?, ?, ?)'
+            connection.execute(query, data)
+            connection.commit()
 
         return True
 
     #work with user. we have one table usr_main for all chats
     @staticmethod
-    def save_user(config_values, message_text, user_id, message_id, chat_id):
+    def save_user(config_values, message_text, user_id, message_id, chat_id, is_spam):
+        #TODO: add more actions here, may be work with column hunam. 
+        if is_spam:
+            return False
+
         table_prefix_user = config_values['table_prefix_user']
         connection = config_values['connection']
         #create table if not exists (quick operation)
@@ -37,7 +43,7 @@ class DbFunctions:
         connection.execute(query)
         connection.commit()
         
-        #check user. TODO: rewrite sql (update) and think about the logic
+        #check user
         query = f'SELECT user_id, messages_count, human, message_hash FROM "{table_prefix_user}_main" where  user_id = {user_id}'
         result = connection.execute(query)
         existing_user = result.fetchone()
