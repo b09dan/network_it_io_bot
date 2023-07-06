@@ -5,6 +5,7 @@ import logging.config
 from rules_class import Rules
 from db_functions_class import DbFunctions
 from training_class import Training
+from spam_processing_class import SpamProcessing
 
 #load key-value config, skip # as comments
 def load_config(file_path):
@@ -18,7 +19,7 @@ def load_config(file_path):
     return config
 
 
-#TODO: read only chat_whitelist (development mode)
+#work with update. Hint: chat_whitelist helps to ignore chats.
 def process_update(config_values, update):
     bot_token =  config_values['bot_token']
     api_url = f'https://api.telegram.org/bot{bot_token}'
@@ -27,7 +28,12 @@ def process_update(config_values, update):
         logging.info(update)
         is_spam = 0
         chat_id = update['message']['chat']['id']
-        #TODO: dont forget to think about the whitelist   and chat_id in config_values['chat_whitelist']
+        
+        #if whitelist is set, work only with whitelist
+        if config_values['chat_whitelist'] is not None and str(chat_id) not in config_values['chat_whitelist']:
+            logging.info("Ignore chat_id = %s. chat_whitelist is %s", str(chat_id), config_values['chat_whitelist'])
+            return True
+            
         if 'text' in update['message']:
             message_text = update['message']['text']
             message_id = update['message']['message_id']
@@ -40,7 +46,7 @@ def process_update(config_values, update):
             
             logging.debug("Update processed. Chat_id=%s Message_id=%s User_id=%s", chat_id, message_id, user_id)
             if is_spam:
-                forward_message(config_values, "0", chat_id, message_id)
+                SpamProcessing.spam_main_func(config_values, chat_id, message_id)
     return True
 
 def get_updates(config_values, offset=None):
@@ -62,12 +68,12 @@ def main():
 
     config_values = load_config(config_file)
 
-    #TODO: add setting log level log_conf_file
+    #set log level from log_conf_file
     logging.config.fileConfig(config_values['log_conf_file'])
     config_values['logger'] = logging.getLogger()
     
     #create db and db connection
-    config_values['connection']=DbFunctions.connect_to_database(config_values['database_name'])
+    config_values['connection'] = DbFunctions.connect_to_database(config_values['database_name'])
 
     if config_values['mode'] == "general":
         #get updates and proccess them

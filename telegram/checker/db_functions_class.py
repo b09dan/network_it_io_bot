@@ -10,19 +10,21 @@ class DbFunctions:
     #save message to db
     @staticmethod
     def save_message(config_values, message_text, user_id, message_id, chat_id, is_spam):
-        table_prefix_msg = config_values['table_prefix_msg']
-        connection = config_values['connection']
+        #now we save only spam message text. TODO: may be another logic? 
+        if is_spam:
+            table_prefix_msg = config_values['table_prefix_msg']
+            connection = config_values['connection']
 
-        query = f'CREATE TABLE IF NOT EXISTS "{table_prefix_msg}{chat_id}" \
-                (message_id INTEGER PRIMARY KEY, user_id INTEGER, message_text TEXT, deleted INTEGER, is_spam INTEGER)'
-        connection.execute(query)
-        connection.commit()
-        
-        #we don't save message text
-        data = (message_id, user_id, "", 0, is_spam)
-        query = f'REPLACE INTO "{table_prefix_msg}{chat_id}" (message_id, user_id, message_text, deleted, is_spam) VALUES (?, ?, ?, ?, ?)'
-        connection.execute(query, data)
-        connection.commit()
+            query = f'CREATE TABLE IF NOT EXISTS "{table_prefix_msg}{chat_id}" \
+                    (message_id INTEGER PRIMARY KEY, user_id INTEGER, message_text TEXT, deleted INTEGER, is_spam INTEGER)'
+            connection.execute(query)
+            connection.commit()
+            
+
+            data = (message_id, user_id, "", 0, is_spam)
+            query = f'REPLACE INTO "{table_prefix_msg}{chat_id}" (message_id, user_id, message_text, deleted, is_spam) VALUES (?, ?, ?, ?, ?)'
+            connection.execute(query, data)
+            connection.commit()
 
         return True
 
