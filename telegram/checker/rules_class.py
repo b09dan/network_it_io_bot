@@ -13,37 +13,40 @@ class Rules:
 
     #work with message: make spam decision. False = not spam----------------------------
     @staticmethod
-    def message_check(config_values, message_text, user_id, chat_id, reply_id):
-        print("---Message check starting.---")
+    def message_check(config_values, message_text, user_id, chat_id, reply_id, message_id):
+        logger = config_values['logger']
+
+        logger.info("Message_id=%s. Start message check.  Chat_id=%s", message_id, chat_id)
         is_mixed = False
 
         if DbFunctions.is_human(config_values, user_id):
-            print("---This is human (not spam). Stop message check.---")
+            logger.info("Message_id=%s. This is human (not spam). Stop message check.", message_id)
             return False
 
         if DbFunctions.duplicate_messages(config_values, user_id, message_text):
-            print("---This is duplicated (spam) message. Stop message check.---")
+            logger.info("Message_id=%s. This is duplicated (spam) message. Stop message check.", message_id)
             return True       
 
         #spam points (needs to be adjusted)
         spam_probability = 0
         #check regexp
         spam_probability += 10 *  Rules.regexp_check(message_text)
-        print("Spam probability = " + str(spam_probability))
+        logger.info("Message_id=%s. Spam probability = %d.", message_id, spam_probability)
         #check language mix 
-        is_mixed = Rules.languages_mix(message_text)
+        is_mixed = Rules.languages_mix(message_text, message_id)
 
         #additional checks
-        add_checks_sum = int(Rules.count_unicode_characters(message_text)) + \
-                         int(Rules.count_newlines(message_text)) + \
-                         int(Rules.count_eclamation_marks(message_text))
+        add_checks_sum = int(Rules.count_unicode_characters(message_text, message_id)) + \
+                         int(Rules.count_newlines(message_text, message_id)) + \
+                         int(Rules.count_eclamation_marks(message_text, message_id))
         
 
         if (is_mixed or spam_probability > 0) and add_checks_sum > 1 or add_checks_sum == 3:
-            print("---Message check done: SPAM (advanced rules).---")
+            logger.info("Message_id=%s. Message check done: SPAM (advanced rules).", message_id)
             return True
-        
-        print("---Message check done.---")
+
+        logger.info("Message_id=%s. Message check done.  Chat_id=%s", message_id, chat_id)
+
         return False
 
 #
@@ -67,7 +70,7 @@ class Rules:
 
     #check against mix of languages
     @staticmethod
-    def languages_mix(message_text):
+    def languages_mix(message_text, message_id):
         russian_alphabet = re.compile(r'^[а-яёА-ЯЁ]+$')
         english_alphabet = re.compile(r'^[a-zA-Z]+$')
         pattern = r'[^А-яЁёA-Za-z\s]'
@@ -79,7 +82,7 @@ class Rules:
             if len(word) > 4 and russian_alphabet.match(word) is None and english_alphabet.match(word) is None:
                 mixed_words_count += 1
                 if mixed_words_count > 1:
-                    print("Mixed languages.")
+                    logger.info("Message_id=%s. Mixed languages.", message_id)
                     return True #two mixed words enough for decision
         return False
    
@@ -90,30 +93,30 @@ class Rules:
 #                           additional checks
 # 
     #too many newlines? use this only as additional check
-    def count_newlines(message_text):
+    def count_newlines(message_text, message_id):
         count = message_text.count("\n")
-        if count > 4: 
-            print("Too many newlines.")
+        if count > 4:
+            logger.info("Message_id=%s. Too many newlines: %d", message_id, count)
             return True
 
         return False
 
     #too many eclamation marks? use this only as additional check
-    def count_eclamation_marks(message_text):
+    def count_eclamation_marks(message_text, message_id):
         count = message_text.count("!")
         if count > 4: 
-            print("Too many eclamation marks.")
+            logger.info("Message_id=%s. Too many eclamation marks: %d", message_id, count)
             return True
         return False
     
     #count emotions (not exactly but close to needed)
-    def count_unicode_characters(message_text):
+    def count_unicode_characters(message_text, message_id):
         count = 0
         for char in message_text:
             if unicodedata.category(char)[0] == 'C':
                 count += 1
         if count > 3:
-            print("Unicode:" + str(count))
+            logger.info("Message_id=%s. Too many Unicode: %d", message_id, count)
             return True
             
         return False
@@ -124,7 +127,7 @@ class Rules:
 
     #check agains greek alphabet. for future use?
     @staticmethod
-    def is_greek_letters(message_text):
+    def is_greek_letters(message_text, message_id):
         greek_alphabet = re.compile(r'[α-ωΑ-Ω]')
         greek_letters = re.findall(greek_alphabet, message_text)
         count = len(greek_letters)

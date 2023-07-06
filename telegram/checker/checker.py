@@ -1,6 +1,7 @@
 import requests
 import json
 import logging
+import logging.config
 from rules_class import Rules
 from db_functions_class import DbFunctions
 from training_class import Training
@@ -16,17 +17,6 @@ def load_config(file_path):
                 config[key.strip()] = value.strip()
     return config
 
-#work with update TODO:send message only to chat_reply_restrict chat
-def send_message(config_values, chat_id, text, reply_to_message_id=None):
-    bot_token =  config_values['bot_token']
-    api_url = f'https://api.telegram.org/bot{bot_token}'
-    url = f'{api_url}/sendMessage'
-    #TODO: think about sending to other chats, but now restrict sending only to config (avoiding unnecessary spam)
-    chat_id = config_values['chat_reply_restrict']
-    
-    params = {'chat_id': chat_id, 'text': text, 'reply_to_message_id': reply_to_message_id}
-    response = requests.post(url, params)
-    return response.json()
 
 #TODO: read only chat_whitelist (development mode)
 def process_update(config_values, update):
@@ -43,14 +33,15 @@ def process_update(config_values, update):
             message_id = update['message']['message_id']
             user_id = update['message']['from']['id']
 
-            is_spam = int(Rules.message_check(config_values, message_text, user_id, 0, 0))
+            is_spam = int(Rules.message_check(config_values, message_text, user_id, chat_id, 0, message_id))
 
-            DbFunctions.save_user(config_values, message_text, user_id, message_id, chat_id)
+            DbFunctions.save_user(config_values, message_text, user_id, message_id, chat_id, is_spam)
             DbFunctions.save_message(config_values, message_text, user_id, message_id, chat_id, is_spam)       
             
             logging.debug("Update processed. Chat_id=%s Message_id=%s User_id=%s", chat_id, message_id, user_id)
-            #TODO: do not send message here, it's only for tests
-            #send_message(config_values, chat_id, f'You said: {message_text}\nYour userid: {user_id}', reply_to_message_id=message_id)
+            if is_spam:
+                forward_message(config_values, "0", chat_id, message_id)
+    return True
 
 def get_updates(config_values, offset=None):
     bot_token =  config_values['bot_token']
@@ -71,9 +62,9 @@ def main():
 
     config_values = load_config(config_file)
 
-    #TODO: add setting log level
-    #log_level = config_values['loglevel']
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+    #TODO: add setting log level log_conf_file
+    logging.config.fileConfig(config_values['log_conf_file'])
+    config_values['logger'] = logging.getLogger()
     
     #create db and db connection
     config_values['connection']=DbFunctions.connect_to_database(config_values['database_name'])
@@ -88,7 +79,7 @@ def main():
                     offset = update['update_id'] + 1
     elif config_values['mode'] == "training":
             Training.train_good(config_values)
-            print("----------------")
+            logging.info("----------------")
             Training.train_bad(config_values)
 
 if __name__ == '__main__':

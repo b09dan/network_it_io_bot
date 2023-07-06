@@ -28,7 +28,11 @@ class DbFunctions:
 
     #work with user. we have one table usr_main for all chats
     @staticmethod
-    def save_user(config_values, message_text, user_id, message_id, chat_id):
+    def save_user(config_values, message_text, user_id, message_id, chat_id, is_spam):
+        #TODO: add more actions here, may be work with column hunam. 
+        if is_spam:
+            return False
+
         table_prefix_user = config_values['table_prefix_user']
         connection = config_values['connection']
         #create table if not exists (quick operation)
@@ -37,7 +41,7 @@ class DbFunctions:
         connection.execute(query)
         connection.commit()
         
-        #check user. TODO: rewrite sql (update) and think about the logic
+        #check user
         query = f'SELECT user_id, messages_count, human, message_hash FROM "{table_prefix_user}_main" where  user_id = {user_id}'
         result = connection.execute(query)
         existing_user = result.fetchone()
