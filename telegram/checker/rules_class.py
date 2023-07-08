@@ -34,6 +34,8 @@ class Rules:
         logger.info("Message_id=%s. Spam probability = %d.", message_id, spam_probability)
         #check language mix 
         is_mixed = Rules.languages_mix(message_text, message_id, logger)
+        #extended alphabet
+        is_extended_alphabet = Rules.contains_modified_letters(message_text, message_id, logger)
 
         #additional checks
         add_checks_sum = int(Rules.count_unicode_characters(message_text, message_id, logger)) + \
@@ -41,7 +43,7 @@ class Rules:
                          int(Rules.count_eclamation_marks(message_text, message_id, logger))
         
 
-        if (is_mixed or spam_probability > 0) and add_checks_sum > 1 or add_checks_sum == 3:
+        if ((is_mixed or spam_probability > 0) and add_checks_sum > 1) or add_checks_sum == 3 or is_extended_alphabet:
             logger.info("Message_id=%s. Message check done: SPAM (advanced rules).", message_id)
             return True
 
@@ -86,6 +88,22 @@ class Rules:
                     return True #two mixed words enough for decision
         return False
    
+    #detect modified alphabet
+    def contains_modified_letters(message_text, message_id, logger):
+        #extended unicodes for russian and latin
+        modified_russian_alphabet = range(0x1D04, 0x1D2B)  
+        modified_latin_alphabet = range(0x1D00, 0x1D7F)  
+        count = 0
+
+        for char in message_text[:100]:
+            if ord(char) in modified_russian_alphabet or ord(char) in modified_latin_alphabet:
+                count += 1
+
+        if count > 3:
+            logger.info("Message_id=%s. Extended alphabet detected.", message_id)
+            return True 
+        
+        return False 
 
 
 
