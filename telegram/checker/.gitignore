@@ -1,5 +1,7 @@
 config_checker.cfg
 __pycache__/
+docker/tmp
+database/
 tmp/
 *.txt
 *.db

@@ -2,6 +2,7 @@ import requests
 import json
 import logging
 import logging.config
+import os
 from rules_class import Rules
 from db_functions_class import DbFunctions
 from training_class import Training
@@ -56,7 +57,12 @@ def get_updates(config_values, offset=None):
 
     params = {'offset': offset}
     response = requests.get(url, params)
-    return response.json()
+
+    if response.status_code == 200:
+        return response.json()
+    else:
+        logging.error("ERROR! Update failed with status code %s %s. Check also bot_token.", str(response.status_code), response.text)
+        return None
 
 
 
@@ -75,14 +81,26 @@ def main():
     #create db and db connection
     config_values['connection'] = DbFunctions.connect_to_database(config_values['database_name'])
 
+    #get and rewrite bot_token if bot token is set in ENV, also unset ENV
+    if 'BOT_TOKEN' in os.environ:
+        config_values['bot_token'] = os.environ['BOT_TOKEN']
+        del os.environ['BOT_TOKEN']
+
+    #delete config file and unset ENV
+    if os.path.exists(config_file):
+        os.remove(config_file)
+
     if config_values['mode'] == "general":
         #get updates and proccess them
         while True:
             updates = get_updates(config_values, offset)
-            if 'result' in updates:
+            if updates is not None and 'result' in updates:
                 for update in updates['result']:
                     process_update(config_values, update)
                     offset = update['update_id'] + 1
+            elif updates is None:
+                return False
+
     elif config_values['mode'] == "training":
             Training.train_good(config_values)
             logging.info("----------------")
