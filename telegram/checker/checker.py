@@ -84,11 +84,11 @@ def main():
     #get and rewrite bot_token if bot token is set in ENV, also unset ENV
     if 'BOT_TOKEN' in os.environ:
         config_values['bot_token'] = os.environ['BOT_TOKEN']
-        del os.environ['BOT_TOKEN']
+        #del os.environ['BOT_TOKEN']
 
     #delete config file and unset ENV
-    if os.path.exists(config_file):
-        os.remove(config_file)
+    #if os.path.exists(config_file):
+    #    os.remove(config_file)
 
     if config_values['mode'] == "general":
         #get updates and proccess them
