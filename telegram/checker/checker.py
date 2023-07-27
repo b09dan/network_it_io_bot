@@ -33,10 +33,10 @@ def process_update(config_values, update):
         chat_id = update['message']['chat']['id']
         
         #if whitelist is set, work only with whitelist
-        if config_values['chat_whitelist'] is not None and str(chat_id) not in config_values['chat_whitelist']:
+        if (config_values['chat_whitelist'] is not None or config_values['chat_whitelist'] != '') and str(chat_id) not in config_values['chat_whitelist']:
             logging.info("Ignore chat_id = %s. chat_whitelist is %s", str(chat_id), config_values['chat_whitelist'])
             return True
-            
+
         if 'text' in update['message']:
             message_text = update['message']['text']
             message_id = update['message']['message_id']
