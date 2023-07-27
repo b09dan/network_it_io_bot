@@ -1,3 +1,5 @@
+import datetime
+
 import requests
 import json
 import logging
@@ -51,6 +53,7 @@ def process_update(config_values, update):
     return True
 
 def get_updates(config_values, offset=None):
+    logging.info("Heartbeat: %s", datetime.datetime.now())
     bot_token =  config_values['bot_token']
     api_url = f'https://api.telegram.org/bot{bot_token}'
     url = f'{api_url}/getUpdates'
