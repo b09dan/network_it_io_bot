@@ -1,6 +1,0 @@
-- hosts: all
-  tasks:
-    - name: create user
-      include_role:
-        name: create_user
-

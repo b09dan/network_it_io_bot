@@ -1,2 +1,0 @@
-- name: watermark
-  command: rabbitmqctl set_vm_memory_high_watermark {{ watermark | default('0.6') }}

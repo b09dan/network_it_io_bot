@@ -1,6 +1,0 @@
-- hosts: all
-  tasks:
-    - name: install redis
-      include_role:
-        name: install_redis
-

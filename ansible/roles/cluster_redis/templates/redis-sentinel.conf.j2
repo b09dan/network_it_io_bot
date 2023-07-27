@@ -1,8 +1,0 @@
-#Ansible managed 1
-sentinel monitor myredis 192.168.100.186 6379 2
-sentinel down-after-milliseconds myredis 6000
-sentinel failover-timeout myredis 60000
-sentinel parallel-syncs myredis 1
-bind 0.0.0.0
-sentinel auth-pass myredis {{ redis_password }}
-port {{ sentinel_port | default ('26379')  }}
