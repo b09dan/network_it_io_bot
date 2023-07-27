@@ -1,6 +1,10 @@
 # DESCRIPTION
 
-telegram bot, in progress
+### Originally developed by [Dmitrii Skorinov](https://www.linkedin.com/in/dmitrii-skorinov/).
+
+His [GitHub profile](https://github.com/dskorinov)
+
+#### Telegram bot to control spam in [network-it.io](https://network-it.io/) telegram groups
 
 ## Build and run
 
