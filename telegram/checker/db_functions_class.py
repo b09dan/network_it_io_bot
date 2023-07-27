@@ -1,9 +1,18 @@
+import errno
+import os
 import sqlite3
 
 class DbFunctions:
     
     @staticmethod
     def connect_to_database(database_name):
+        database_name_dir_path: str = os.path.dirname(database_name)
+        if not os.path.exists(database_name_dir_path):
+            try:
+                os.makedirs(database_name_dir_path)
+            except OSError as exc:  # Guard against race condition
+                if exc.errno != errno.EEXIST:
+                    raise
         connection = sqlite3.connect(database_name)
         return connection
 
