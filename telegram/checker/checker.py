@@ -16,7 +16,7 @@ def load_config(file_path):
     with open(file_path, 'r') as file:
         for line in file:
             line = line.strip()
-            if line and not line.startswith('#'):  
+            if line and not line.startswith('#'):
                 key, value = line.split('=')
                 config[key.strip()] = value.strip()
     return config

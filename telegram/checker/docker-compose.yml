@@ -1,0 +1,9 @@
+version: '3.9'
+
+services:
+  network_it_io_bot:
+    build: .
+    # add other settings here
+    volumes:
+      - ./database:/anf_checker/database
+    restart: always
