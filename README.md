@@ -37,17 +37,10 @@ mv example.cfg config_checker.cfg
 - as env-file variable (--env-file=path/to/file with BOT_TOKEN=your_token)
 - change config file variable
 
-5. build docker
+5. build and run docker
 
 ```
 
-./build.sh
-
-```
-6. check run_bot.sh, change if needed
-
-```
-
-./run_bot.sh
+docker-compose up -d
 
 ```
